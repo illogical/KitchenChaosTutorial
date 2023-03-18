@@ -11,6 +11,12 @@ public class ContainerCounter : BaseCounter
     
     public override void Interact(Player player)
     {
+        if (player.HasKitchenObject())
+        {
+            // player's hands are full
+            return;
+        }
+        
         if (!HasKitchenObject())
         {
             Transform kitchenObjectTransform = Instantiate(kitchenObjectSO.prefab);
