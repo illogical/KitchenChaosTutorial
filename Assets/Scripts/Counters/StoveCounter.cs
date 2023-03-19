@@ -57,7 +57,7 @@ public class StoveCounter : BaseCounter, IHasProgress
                     state = State.Fried;
                     burningTimer = 0f;
                     burningRecipeSO = GetFryingRecipeSOWithInput(fryingRecipeSO.Output);
-                    
+
                     OnStateChanged?.Invoke(this, new OnStateChangedEventArgs { State = state});
                     OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs
                     {
@@ -124,6 +124,8 @@ public class StoveCounter : BaseCounter, IHasProgress
         }
         else
         {
+            // there is an object here
+            
             if (!player.HasKitchenObject())
             {
                 // player is not carrying something   
@@ -136,6 +138,25 @@ public class StoveCounter : BaseCounter, IHasProgress
                 {
                     ProgressNormalized = 0f
                 });
+            }
+            else
+            {
+                // player is carrying something
+                if (player.GetKitchenObject().TryGetPlate(out PlateKitchenObject plateKitchenObject)) ;
+                {
+                    // player is holding a plate
+                    if (plateKitchenObject.TryAddIngredient(GetKitchenObject().GetKitchenObjectSO()))
+                    {
+                        GetKitchenObject().DestroySelf();
+                        
+                        state = State.Idle;
+                        OnStateChanged?.Invoke(this, new OnStateChangedEventArgs { State = state});
+                        OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs
+                        {
+                            ProgressNormalized = 0f
+                        });
+                    }
+                }
             }
            
         }
