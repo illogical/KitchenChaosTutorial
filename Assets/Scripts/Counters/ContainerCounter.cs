@@ -19,7 +19,7 @@ public class ContainerCounter : BaseCounter
         
         if (!HasKitchenObject())
         {
-            SpawnKitchenObject(kitchenObjectSO, player);
+            KitchenObject.SpawnKitchenObject(kitchenObjectSO, player);
             OnPlayerGrabbedObject?.Invoke(this, EventArgs.Empty);
         }
     }

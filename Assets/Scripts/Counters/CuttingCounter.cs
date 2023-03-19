@@ -69,7 +69,7 @@ public class CuttingCounter : BaseCounter
             {
                 GetKitchenObject().DestroySelf();
 
-                SpawnKitchenObject(outputKitchenObject, this);
+                KitchenObject.SpawnKitchenObject(outputKitchenObject, this);
             }
         }
     }
