@@ -7,7 +7,8 @@ using UnityEngine.Serialization;
 public class Player : MonoBehaviour, IKitchenObjectParent
 {
     public static Player Instance { get; private set; }
-    
+
+    public event EventHandler OnPickedUpSomething;
     public event EventHandler<OnSelectedChangedEventArgs> OnSelectedCounterChanged;
     public class OnSelectedChangedEventArgs : EventArgs
     {
@@ -165,7 +166,16 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     }
 
     public Transform GetKitchenObjectFollowTransform() => kitchenObjectHoldPoint;
-    public void SetKitchenObject(KitchenObject kitchenObject) => this.kitchenObject = kitchenObject;
+
+    public void SetKitchenObject(KitchenObject kitchenObject)
+    {
+        this.kitchenObject = kitchenObject;
+
+        if (kitchenObject is not null)
+        {
+            OnPickedUpSomething?.Invoke(this, EventArgs.Empty);
+        }
+    }
     public bool HasKitchenObject() => kitchenObject != null;
 
     public KitchenObject GetKitchenObject() => kitchenObject;

@@ -10,6 +10,8 @@ public class DeliveryManager : MonoBehaviour
 
     public event EventHandler OnRecipeSpawned;
     public event EventHandler OnRecipeDelivered;
+    public event EventHandler OnRecipeSuccess;
+    public event EventHandler OnRecipeFailed;
     
     
     [SerializeField] private float spawnRecipeTimerMax = 4f;
@@ -77,6 +79,7 @@ public class DeliveryManager : MonoBehaviour
                         waitingRecipeSOList.RemoveAt(i);
                         
                         OnRecipeDelivered?.Invoke(this, EventArgs.Empty);
+                        OnRecipeSuccess?.Invoke(this, EventArgs.Empty);
                         return;
                     }
                 }
@@ -85,6 +88,7 @@ public class DeliveryManager : MonoBehaviour
         
         // no matches found- player delivered the wrong recipe
         Debug.Log("That is the wrong meal!");
+        OnRecipeFailed?.Invoke(this, EventArgs.Empty);
     }
 
     public List<RecipeSO> GetWaitingRecipeListSO() => waitingRecipeSOList;
