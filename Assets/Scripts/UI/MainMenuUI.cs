@@ -10,10 +10,13 @@ public class MainMenuUI : MonoBehaviour
     [SerializeField] private Button startButton;
     [SerializeField] private Button quitButton;
 
-    private void Start()
+    private void Awake()
     {
         startButton.onClick.AddListener(OnStartClicked);
         quitButton.onClick.AddListener(OnQuitButtonClicked);
+
+        // in case the game was restarted, unpause the game     
+        Time.timeScale = 1f;
     }
 
 
