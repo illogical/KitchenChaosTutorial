@@ -1,10 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class DeliveryManager : MonoBehaviour
+public class DeliveryManager : NetworkBehaviour
 {
     public static DeliveryManager Instance { get; private set; }
 
@@ -26,10 +27,13 @@ public class DeliveryManager : MonoBehaviour
     {
         Instance = this;
         waitingRecipeSOList = new List<RecipeSO>();
+        spawnRecipeTimer = spawnRecipeTimerMax;
     }
 
     private void Update()
     {
+        if(!IsServer) return;
+
         spawnRecipeTimer -= Time.deltaTime;
 
         if (spawnRecipeTimer <= 0f)
@@ -38,12 +42,20 @@ public class DeliveryManager : MonoBehaviour
 
             if (waitingRecipeSOList.Count < waitingRecipeMax)
             {
-                RecipeSO waitingRecipeSO = recipeList.RecipeSOList[UnityEngine.Random.Range(0, recipeList.RecipeSOList.Count)];
-                waitingRecipeSOList.Add(waitingRecipeSO);
-                
-                OnRecipeSpawned?.Invoke(this, EventArgs.Empty);
+                int waitingRecipeSOIndex = UnityEngine.Random.Range(0, recipeList.RecipeSOList.Count);
+                SpawnNewWaitingRecipeClientRpc(waitingRecipeSOIndex);
             }
         }
+    }
+
+    [ClientRpc]
+    // keep in mind that this method is called on the server and then the server calls it on the clients
+    public void SpawnNewWaitingRecipeClientRpc(int waitingRecipeSOIndex)
+    {
+        RecipeSO waitingRecipeSO = recipeList.RecipeSOList[waitingRecipeSOIndex];
+
+        waitingRecipeSOList.Add(waitingRecipeSO);
+        OnRecipeSpawned?.Invoke(this, EventArgs.Empty);
     }
 
     public void DeliverRecipe(PlateKitchenObject plateKitchenObject)
