@@ -8,7 +8,8 @@ public class SelectedCounterVisual : MonoBehaviour
     
     private void Start()
     {
-        Player.Instance.OnSelectedCounterChanged += InstanceOnOnSelectedCounterChanged;
+        // TODO: fix Player.Instance for multiplayer
+        //Player.Instance.OnSelectedCounterChanged += InstanceOnOnSelectedCounterChanged;
     }
 
     private void InstanceOnOnSelectedCounterChanged(object sender, Player.OnSelectedChangedEventArgs e)

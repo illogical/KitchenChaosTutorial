@@ -20,10 +20,10 @@ public class KitchenGameManager : MonoBehaviour
 
     private State state;
     private bool isGamePaused;
-    private float waitingToStartTimer = 1f;
-    private float countDownToStartTimer = 3f;
+    private float waitingToStartTimer = 0f;
+    private float countDownToStartTimer = 1f;
     private float gamePlayingTimer = 0;
-    [SerializeField] private float gamePlayingTimerMax = 30f;
+    [SerializeField] private float gamePlayingTimerMax = 300f;
 
     private void Awake()
     {
@@ -34,6 +34,10 @@ public class KitchenGameManager : MonoBehaviour
     private void Start()
     {
         GameInput.Instance.OnPauseAction += GameInputOnPauseUnpauseAction;
+
+        // TODO: for development only. Triggers game to start immediately
+        state = State.CountdownToStart;
+        OnStateChanged?.Invoke(this, EventArgs.Empty);
     }
 
 
