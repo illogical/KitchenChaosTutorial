@@ -7,8 +7,9 @@ using UnityEngine.Serialization;
 
 public class Player : NetworkBehaviour, IKitchenObjectParent
 {
-    //public static Player Instance { get; private set; }
+    public static Player LocalInstance { get; private set; }
 
+    public static event EventHandler OnAnyPlayerSpawned;
     public event EventHandler OnPickedUpSomething;
     public event EventHandler<OnSelectedChangedEventArgs> OnSelectedCounterChanged;
     public class OnSelectedChangedEventArgs : EventArgs
@@ -27,10 +28,17 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     private BaseCounter selectedCounter;
     private KitchenObject kitchenObject;
 
-    //private void Awake()
-    //{
-    //    Instance = this;
-    //}
+    public static void ResetStaticData() => OnAnyPlayerSpawned = null;
+
+    public override void OnNetworkSpawn()
+    {
+        if(IsOwner)
+        {
+            LocalInstance = this;
+        }
+
+        OnAnyPlayerSpawned?.Invoke(this, EventArgs.Empty);
+    }
 
     private void Start()
     {
