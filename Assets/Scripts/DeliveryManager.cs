@@ -89,18 +89,36 @@ public class DeliveryManager : NetworkBehaviour
                     if (plateContentsMatchesRecipe)
                     {
                         // player delivered the correct recipe!
-                        successfulRecipeAmount++;
-                        waitingRecipeSOList.RemoveAt(i);
-                        
-                        OnRecipeDelivered?.Invoke(this, EventArgs.Empty);
-                        OnRecipeSuccess?.Invoke(this, EventArgs.Empty);
+                        DeliverCorrectRecipeServerRpc(i);
                         return;
                     }
                 }
             }
         }
-        
+
         // no matches found- player delivered the wrong recipe
+        DeliverIncorrectRecipeServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void DeliverCorrectRecipeServerRpc(int waitingRecipeSOListIndex) => DeliverCorrectRecipeClientRpc(waitingRecipeSOListIndex);
+
+    [ClientRpc]
+    private void DeliverCorrectRecipeClientRpc(int waitingRecipeSOListIndex)
+    {
+        successfulRecipeAmount++;
+        waitingRecipeSOList.RemoveAt(waitingRecipeSOListIndex);
+
+        OnRecipeDelivered?.Invoke(this, EventArgs.Empty);
+        OnRecipeSuccess?.Invoke(this, EventArgs.Empty);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void DeliverIncorrectRecipeServerRpc() => DeliverIncorrectRecipeClientRpc();
+
+    [ClientRpc]
+    private void DeliverIncorrectRecipeClientRpc()
+    {
         Debug.Log("That is the wrong meal!");
         OnRecipeFailed?.Invoke(this, EventArgs.Empty);
     }
