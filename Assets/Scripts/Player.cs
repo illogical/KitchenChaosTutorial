@@ -10,6 +10,8 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     public static Player LocalInstance { get; private set; }
 
     public static event EventHandler OnAnyPlayerSpawned;
+    public static event EventHandler OnAnyPickedSomething;
+
     public event EventHandler OnPickedUpSomething;
     public event EventHandler<OnSelectedChangedEventArgs> OnSelectedCounterChanged;
     public class OnSelectedChangedEventArgs : EventArgs
@@ -193,6 +195,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         if (kitchenObject is not null)
         {
             OnPickedUpSomething?.Invoke(this, EventArgs.Empty);
+            OnAnyPickedSomething?.Invoke(this, EventArgs.Empty);
         }
     }
     public bool HasKitchenObject() => kitchenObject != null;
@@ -203,4 +206,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     {
         kitchenObject = null;
     }
+
+    public NetworkObject GetNetworkObject() => NetworkObject;
+
 }

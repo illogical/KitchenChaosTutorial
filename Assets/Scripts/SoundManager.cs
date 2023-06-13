@@ -17,7 +17,7 @@ public class SoundManager : MonoBehaviour
     {
         Instance = this;
 
-        volume = PlayerPrefs.GetFloat(PLAYER_PREFS_SOUND_EFFECTS_VOLUME, 0.5f);
+        volume = PlayerPrefs.GetFloat(PLAYER_PREFS_SOUND_EFFECTS_VOLUME, 0.1f);
     }
 
     private void Start()
@@ -25,8 +25,7 @@ public class SoundManager : MonoBehaviour
         DeliveryManager.Instance.OnRecipeSuccess += DeliveryManagerOnRecipeSuccess;
         DeliveryManager.Instance.OnRecipeFailed += DeliveryManagerOnRecipeFailed;
         CuttingCounter.OnAnyCut += CuttingCounterOnAnyCut;
-        // TODO: fix Player.Instance for multiplayer
-        //Player.Instance.OnPickedUpSomething += PlayerOnPickedUpSomething;
+        Player.OnAnyPickedSomething += PlayerOnPickedUpSomething;
         BaseCounter.OnAnyObjectPlacedHere += BaseCounterOnAnyObjectPlacedHere;
         TrashCounter.OnAnyObjectTrashed += TrashCounterOnAnyObjectTrashed;
     }
@@ -55,8 +54,8 @@ public class SoundManager : MonoBehaviour
 
     private void PlayerOnPickedUpSomething(object sender, EventArgs e)
     {
-        // TODO: fix Player.Instance for multiplayer
-        //PlaySound(audioClipRefsSO.objectPickup, Player.Instance.transform.position);
+        Player player = sender as Player;
+        PlaySound(audioClipRefsSO.objectPickup, player.transform.position);
     }
 
     private void CuttingCounterOnAnyCut(object sender, EventArgs e)
