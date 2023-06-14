@@ -46,11 +46,6 @@ public class KitchenObject : NetworkBehaviour
         followTransform.SetTargetTransform(kitchenObjectParent.GetKitchenObjectFollowTransform());
     }
 
-    public IKitchenObjectParent GetKitchenObjectParent()
-    {
-        return kitchenObjectParent;
-    }
-
     public void DestroySelf()
     {
         Destroy(gameObject);
