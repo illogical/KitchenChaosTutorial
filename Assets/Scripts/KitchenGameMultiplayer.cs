@@ -59,10 +59,10 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void ClearKitchenObjectOnParentClientRpc(NetworkObjectReference kitchenObjectParentNetworkObjectReference)
+    private void ClearKitchenObjectOnParentClientRpc(NetworkObjectReference kitchenObjectNetworkObjectReference)
     {
-        kitchenObjectParentNetworkObjectReference.TryGet(out NetworkObject kitchenObjectParentNetworkObject);
-        KitchenObject kitchenObjectParent = kitchenObjectParentNetworkObject.GetComponent<KitchenObject>();
-        kitchenObjectParent.ClearKitchenObjectOnParent();
+        kitchenObjectNetworkObjectReference.TryGet(out NetworkObject kitchenObjectNetworkObject);
+        KitchenObject kitchenObject = kitchenObjectNetworkObject.GetComponent<KitchenObject>();
+        kitchenObject.ClearKitchenObjectOnParent();
     }
 }
