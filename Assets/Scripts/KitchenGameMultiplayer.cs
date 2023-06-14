@@ -41,5 +41,28 @@ public class KitchenGameMultiplayer : NetworkBehaviour
 
     private KitchenObjectSO GetKitchenObjectSOFromIndex(int index) => kitchenObjectListSO.KitchenObjectSOList[index];
 
+    public void DestroyKitchenObject(KitchenObject kitchenObject)
+    {
+        DestroyKitchenObjectServerRpc(kitchenObject.NetworkObject);
+    }
 
+    [ServerRpc(RequireOwnership = false)]
+    private void DestroyKitchenObjectServerRpc(NetworkObjectReference kitchenObjectNetworkObjectReference)
+    {
+        kitchenObjectNetworkObjectReference.TryGet(out NetworkObject kitchenObjectNetworkObject);
+        KitchenObject kitchenObject = kitchenObjectNetworkObject.GetComponent<KitchenObject>();
+
+        // tell clients to unparent the object before the server broadcasts to all clients to destroy it
+        ClearKitchenObjectOnParentClientRpc(kitchenObjectNetworkObjectReference);
+
+        kitchenObject.DestroySelf();
+    }
+
+    [ClientRpc]
+    private void ClearKitchenObjectOnParentClientRpc(NetworkObjectReference kitchenObjectParentNetworkObjectReference)
+    {
+        kitchenObjectParentNetworkObjectReference.TryGet(out NetworkObject kitchenObjectParentNetworkObject);
+        KitchenObject kitchenObjectParent = kitchenObjectParentNetworkObject.GetComponent<KitchenObject>();
+        kitchenObjectParent.ClearKitchenObjectOnParent();
+    }
 }
