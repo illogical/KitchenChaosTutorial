@@ -21,7 +21,9 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     
     [SerializeField] private float moveSpeed = 7f;
     [SerializeField] private LayerMask countersLayerMask;
+    [SerializeField] private LayerMask collisionsLayerMask;
     [SerializeField] private Transform kitchenObjectHoldPoint;
+    [SerializeField] private List<Vector3> spawnPositionList;
     
 
     public bool IsWalking() => isWalking;
@@ -39,6 +41,8 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
             LocalInstance = this;
         }
 
+
+        transform.position = spawnPositionList[(int)OwnerClientId];
         OnAnyPlayerSpawned?.Invoke(this, EventArgs.Empty);
     }
 
@@ -124,24 +128,25 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
 
         float moveDistance = moveSpeed * Time.deltaTime;
         float playerRadius = 0.7f;
-        float playerHeight = 2f;
-        bool canMove = !Physics.CapsuleCast(
+        bool canMove = !Physics.BoxCast(
             transform.position, 
-            transform.position + Vector3.up * playerHeight, 
-            playerRadius, 
+            Vector3.one * playerRadius, 
             moveDir, 
-            moveDistance);
+            Quaternion.identity, 
+            moveDistance,
+            collisionsLayerMask);
 
         // allow a player to slide against a wall by moving diagonally. Split x and z inputs.
         if (!canMove)
         {
             Vector3 moveDirX = new Vector3(moveDir.x, 0, 0).normalized; 
-            canMove = moveDir.x != 0 && !Physics.CapsuleCast(
-                transform.position, 
-                transform.position + Vector3.up * playerHeight, 
-                playerRadius, 
-                moveDirX, 
-                moveDistance);
+            canMove = moveDir.x != 0 && !Physics.BoxCast(
+                transform.position,
+                Vector3.one * playerRadius,
+                moveDirX,
+                Quaternion.identity,
+                moveDistance,
+                collisionsLayerMask);
 
             if (canMove)
             {
@@ -151,12 +156,13 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
             else
             {
                 Vector3 moveDirZ = new Vector3(0, 0, moveDir.z).normalized;
-                canMove = moveDir.z != 0 && !Physics.CapsuleCast(
-                    transform.position, 
-                    transform.position + Vector3.up * playerHeight, 
-                    playerRadius, 
-                    moveDirZ, 
-                    moveDistance);
+                canMove = moveDir.z != 0 && !Physics.BoxCast(
+                    transform.position,
+                    Vector3.one * playerRadius,
+                    moveDirZ,
+                    Quaternion.identity,
+                    moveDistance,
+                    collisionsLayerMask);
 
                 if (canMove)
                 {
