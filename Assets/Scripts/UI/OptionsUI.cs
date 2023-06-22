@@ -40,7 +40,7 @@ public class OptionsUI : MonoBehaviour
 
     private void Start()
     {
-        KitchenGameManager.Instance.OnGameUnpaused += KitchenManagerOnGameUnpaused;
+        KitchenGameManager.Instance.OnLocalGameUnpaused += KitchenManagerOnGameUnpaused;
         
         UpdateVisual();
         Hide();

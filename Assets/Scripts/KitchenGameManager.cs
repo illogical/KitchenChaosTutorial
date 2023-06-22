@@ -8,8 +8,10 @@ public class KitchenGameManager : NetworkBehaviour
 {
     public static KitchenGameManager Instance;
     public event EventHandler OnStateChanged;
-    public event EventHandler OnGamePaused;
-    public event EventHandler OnGameUnpaused;
+    public event EventHandler OnLocalGamePaused;
+    public event EventHandler OnLocalGameUnpaused;
+    public event EventHandler OnMultiplayerGamePaused;
+    public event EventHandler OnMultiplayerGameUnpaused;
     public event EventHandler OnLocalPlayerReadyChanged;
 
 
@@ -23,10 +25,12 @@ public class KitchenGameManager : NetworkBehaviour
 
     private NetworkVariable<State> state = new NetworkVariable<State>(State.WaitingToStart);
     private bool isLocalPlayerReady;
-    private bool isGamePaused;
+    private bool isLocalGamePaused;
+    private NetworkVariable<bool> isGamePaused = new NetworkVariable<bool>(false);
     private NetworkVariable<float> countDownToStartTimer = new NetworkVariable<float>(3f);
     private NetworkVariable<float> gamePlayingTimer = new NetworkVariable<float>(0);
     private Dictionary<ulong, bool> playerReadyDictionary;
+    private Dictionary<ulong, bool> playerPausedDictionary;
 
     [SerializeField] private float gamePlayingTimerMax = 90f;
 
@@ -34,6 +38,7 @@ public class KitchenGameManager : NetworkBehaviour
     {
         Instance = this;
         playerReadyDictionary = new Dictionary<ulong, bool>();
+        playerPausedDictionary = new Dictionary<ulong, bool>();
     }
 
     private void Start()
@@ -45,6 +50,7 @@ public class KitchenGameManager : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         state.OnValueChanged += State_OnValueChanged;
+        isGamePaused.OnValueChanged += IsGamePaused_OnValueChanged;
     }
 
     private void Update()
@@ -113,9 +119,55 @@ public class KitchenGameManager : NetworkBehaviour
         }
     }
 
+    [ServerRpc(RequireOwnership = false)]
+    private void PauseGameServerRpc(ServerRpcParams serverRpcParams = default)
+    {
+        playerPausedDictionary[serverRpcParams.Receive.SenderClientId] = true;
+
+        TestGamePausedState();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void UnPauseGameServerRpc(ServerRpcParams serverRpcParams = default)
+    {
+        playerPausedDictionary[serverRpcParams.Receive.SenderClientId] = false;
+
+        TestGamePausedState();
+    }
+
+    private void TestGamePausedState()
+    {
+        foreach(ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
+        {
+            if(playerPausedDictionary.ContainsKey(clientId) && playerPausedDictionary[clientId])
+            {
+                // this player is paused
+                isGamePaused.Value = true;
+                return;
+            }
+        }
+
+        // all players are unpaused
+        isGamePaused.Value = false;
+    }
+
     private void State_OnValueChanged(State previousValue, State newValue)
     {
         OnStateChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void IsGamePaused_OnValueChanged(bool previousValue, bool newValue)
+    {
+        if(isGamePaused.Value)
+        {
+            Time.timeScale = 0f;
+            OnMultiplayerGamePaused?.Invoke(this, EventArgs.Empty);
+        }
+        else
+        {
+            Time.timeScale = 1f;
+            OnMultiplayerGameUnpaused?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     public bool IsGamePlaying()
@@ -130,18 +182,17 @@ public class KitchenGameManager : NetworkBehaviour
 
     public void TogglePauseGame()
     {
-        isGamePaused = !isGamePaused;
+        isLocalGamePaused = !isLocalGamePaused;
 
-        if (isGamePaused)
+        if (isLocalGamePaused)
         {
-            Time.timeScale = 0f;
-            OnGamePaused?.Invoke(this, EventArgs.Empty);
+            OnLocalGamePaused?.Invoke(this, EventArgs.Empty);
+            PauseGameServerRpc();
         }
         else
         {
-            Time.timeScale = 1f;
-            OnGameUnpaused?.Invoke(this, EventArgs.Empty);
-
+            OnLocalGameUnpaused?.Invoke(this, EventArgs.Empty);
+            UnPauseGameServerRpc();
         }
     }
 

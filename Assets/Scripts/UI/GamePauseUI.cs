@@ -19,8 +19,8 @@ public class GamePauseUI : MonoBehaviour
 
     private void Start()
     {
-        KitchenGameManager.Instance.OnGamePaused += (sender, args) => Show();
-        KitchenGameManager.Instance.OnGameUnpaused += (sender, args) => Hide();
+        KitchenGameManager.Instance.OnLocalGamePaused += (sender, args) => Show();
+        KitchenGameManager.Instance.OnLocalGameUnpaused += (sender, args) => Hide();
 
         Hide();
     }
