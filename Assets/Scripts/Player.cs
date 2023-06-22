@@ -140,7 +140,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         if (!canMove)
         {
             Vector3 moveDirX = new Vector3(moveDir.x, 0, 0).normalized; 
-            canMove = moveDir.x != 0 && !Physics.BoxCast(
+            canMove = (moveDir.x < -0.5f || moveDir.x > 0.5f) && !Physics.BoxCast(
                 transform.position,
                 Vector3.one * playerRadius,
                 moveDirX,
@@ -156,7 +156,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
             else
             {
                 Vector3 moveDirZ = new Vector3(0, 0, moveDir.z).normalized;
-                canMove = moveDir.z != 0 && !Physics.BoxCast(
+                canMove = (moveDir.z < -0.5f || moveDir.z > 0.5f) && !Physics.BoxCast(
                     transform.position,
                     Vector3.one * playerRadius,
                     moveDirZ,

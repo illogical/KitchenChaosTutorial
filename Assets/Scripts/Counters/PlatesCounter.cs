@@ -31,7 +31,7 @@ public class PlatesCounter : BaseCounter
             //KitchenObject.SpawnKitchenObject(plateKitchenObjectSO, this);
             spawnPlateTimer = 0;
 
-            if (platesSpawnedAmount < platesSpawnMax)
+            if (KitchenGameManager.Instance.IsGamePlaying() && platesSpawnedAmount < platesSpawnMax)
             {
                 SpawnPlateServerRpc();  // technically this doesn't need to be a ServerRpc since the server is calling it, but it's good practice to use ServerRpc for server->client communication
             }
