@@ -19,14 +19,14 @@ public class TestingNetcodeUI : MonoBehaviour
     private void StartHost()
     {
         Debug.Log("HOST");
-        NetworkManager.Singleton.StartHost();
+        KitchenGameMultiplayer.Instance.StartHost();
         Hide();
     }
 
     private void StartClient()
     {
         Debug.Log("Client");
-        NetworkManager.Singleton.StartClient();
+        KitchenGameMultiplayer.Instance.StartClient();
         Hide();
     }
 

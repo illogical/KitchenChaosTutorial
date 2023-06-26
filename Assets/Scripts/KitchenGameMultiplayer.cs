@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
@@ -44,6 +45,31 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     public void DestroyKitchenObject(KitchenObject kitchenObject)
     {
         DestroyKitchenObjectServerRpc(kitchenObject.NetworkObject);
+    }
+
+    public void StartHost()
+    {
+        NetworkManager.Singleton.ConnectionApprovalCallback += NetworkManagerConnectionApprovalCallback;
+        NetworkManager.Singleton.StartHost();
+    }
+
+    public void StartClient()
+    {
+        NetworkManager.Singleton.StartClient();
+    }
+
+    private void NetworkManagerConnectionApprovalCallback(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
+    {
+        // only allow players to join if the game is waiting to start
+        if(KitchenGameManager.Instance.IsWaitingToStart())
+        {
+            response.Approved = true;
+            response.CreatePlayerObject = true;
+        }
+        else
+        {
+            response.Approved = false;
+        }
     }
 
     [ServerRpc(RequireOwnership = false)]

@@ -222,6 +222,7 @@ public class KitchenGameManager : NetworkBehaviour
     public float GetGamePlayingTimerNormalized() => gamePlayingTimer.Value / gamePlayingTimerMax;
     public bool IsCountdownToStartActive() => state.Value == State.CountdownToStart;
     public bool IsGameOver() => state.Value == State.GameOver;
+    public bool IsWaitingToStart() => state.Value == State.WaitingToStart;
     
  
 }
