@@ -44,6 +44,12 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
 
         transform.position = spawnPositionList[(int)OwnerClientId];
         OnAnyPlayerSpawned?.Invoke(this, EventArgs.Empty);
+
+        // only the server should listen for this event
+        if(IsServer)
+        {
+            NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManagerOnClientDisconnectCallback;
+        }        
     }
 
     private void Start()
@@ -214,5 +220,14 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     }
 
     public NetworkObject GetNetworkObject() => NetworkObject;
+
+    private void NetworkManagerOnClientDisconnectCallback(ulong clientId)
+    {
+        if(clientId == OwnerClientId && HasKitchenObject())
+        {
+            // Can only destroy kitchen object from the server
+            KitchenObject.DestroyKitchenObject(GetKitchenObject());
+        }
+    }
 
 }

@@ -26,6 +26,7 @@ public class KitchenGameManager : NetworkBehaviour
     private NetworkVariable<State> state = new NetworkVariable<State>(State.WaitingToStart);
     private bool isLocalPlayerReady;
     private bool isLocalGamePaused;
+    private bool autoTestGamePausedState;   // used to wait one frame before checking which clients are connected
     private NetworkVariable<bool> isGamePaused = new NetworkVariable<bool>(false);
     private NetworkVariable<float> countDownToStartTimer = new NetworkVariable<float>(3f);
     private NetworkVariable<float> gamePlayingTimer = new NetworkVariable<float>(0);
@@ -51,6 +52,12 @@ public class KitchenGameManager : NetworkBehaviour
     {
         state.OnValueChanged += State_OnValueChanged;
         isGamePaused.OnValueChanged += IsGamePaused_OnValueChanged;
+
+        if(IsServer)
+        {
+            // handle when a player pauses the game then disconnects
+            NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManagerOnClientDisconnectCallback;
+        }
     }
 
     private void Update()
@@ -84,6 +91,15 @@ public class KitchenGameManager : NetworkBehaviour
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private void LateUpdate()
+    {
+        if(autoTestGamePausedState)
+        {
+            autoTestGamePausedState = false;
+            TestGamePausedState();
         }
     }
 
@@ -194,6 +210,11 @@ public class KitchenGameManager : NetworkBehaviour
             OnLocalGameUnpaused?.Invoke(this, EventArgs.Empty);
             UnPauseGameServerRpc();
         }
+    }
+
+    private void NetworkManagerOnClientDisconnectCallback(ulong obj)
+    {
+        autoTestGamePausedState = true;
     }
 
     public bool IsLocalPlayerReady() => isLocalPlayerReady;
