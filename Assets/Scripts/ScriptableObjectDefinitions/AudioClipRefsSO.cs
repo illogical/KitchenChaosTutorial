@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu()]
+[CreateAssetMenu(menuName = "Scriptable Objects/Audio Clip Refs")]
 public class AudioClipRefsSO : ScriptableObject
 {
     public AudioClip stoveSizzle;

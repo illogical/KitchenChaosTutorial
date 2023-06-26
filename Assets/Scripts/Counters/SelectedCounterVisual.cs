@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -8,7 +9,25 @@ public class SelectedCounterVisual : MonoBehaviour
     
     private void Start()
     {
-        Player.Instance.OnSelectedCounterChanged += InstanceOnOnSelectedCounterChanged;
+        if(Player.LocalInstance != null)
+        {
+            Player.LocalInstance.OnSelectedCounterChanged += InstanceOnOnSelectedCounterChanged;
+        }
+        else
+        {
+            Player.OnAnyPlayerSpawned += PlayerOnOnAnyPlayerSpawned;
+        }
+       
+    }
+
+    private void PlayerOnOnAnyPlayerSpawned(object sender, EventArgs e)
+    {
+        if (Player.LocalInstance != null)
+        {
+            // since this could run multiple times, we need to unsubscribe from the event first
+            Player.LocalInstance.OnSelectedCounterChanged -= InstanceOnOnSelectedCounterChanged;
+            Player.LocalInstance.OnSelectedCounterChanged += InstanceOnOnSelectedCounterChanged;
+        }
     }
 
     private void InstanceOnOnSelectedCounterChanged(object sender, Player.OnSelectedChangedEventArgs e)

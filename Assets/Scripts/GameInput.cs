@@ -13,6 +13,21 @@ public class GameInput : MonoBehaviour
     private PlayerInputActions playerInputActions;
     public static GameInput Instance { get; private set; }
 
+    public enum Binding
+    {
+        Move_Up,
+        Move_Down,
+        Move_Left,
+        Move_Right,
+        Interact,
+        InteractAlternate,
+        Pause,
+        Gamepad_Move,
+        Gamepad_Interact,
+        Gamepad_InteractAlternate,
+        Gamepad_Pause
+    }
+
     private void Awake()
     {
         Instance = this;

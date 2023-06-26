@@ -1,12 +1,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-public class Player : MonoBehaviour, IKitchenObjectParent
+public class Player : NetworkBehaviour, IKitchenObjectParent
 {
-    public static Player Instance { get; private set; }
+    public static Player LocalInstance { get; private set; }
+
+    public static event EventHandler OnAnyPlayerSpawned;
+    public static event EventHandler OnAnyPickedSomething;
 
     public event EventHandler OnPickedUpSomething;
     public event EventHandler<OnSelectedChangedEventArgs> OnSelectedCounterChanged;
@@ -16,9 +20,10 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     }
     
     [SerializeField] private float moveSpeed = 7f;
-    [SerializeField] private GameInput gameInput;
     [SerializeField] private LayerMask countersLayerMask;
+    [SerializeField] private LayerMask collisionsLayerMask;
     [SerializeField] private Transform kitchenObjectHoldPoint;
+    [SerializeField] private List<Vector3> spawnPositionList;
     
 
     public bool IsWalking() => isWalking;
@@ -27,20 +32,30 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     private BaseCounter selectedCounter;
     private KitchenObject kitchenObject;
 
-    private void Awake()
+    public static void ResetStaticData() => OnAnyPlayerSpawned = null;
+
+    public override void OnNetworkSpawn()
     {
-        if (Instance != null)
+        if(IsOwner)
         {
-            Debug.LogError("Instance should only exist once!");
+            LocalInstance = this;
         }
-        
-        Instance = this;
+
+
+        transform.position = spawnPositionList[(int)OwnerClientId];
+        OnAnyPlayerSpawned?.Invoke(this, EventArgs.Empty);
+
+        // only the server should listen for this event
+        if(IsServer)
+        {
+            NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManagerOnClientDisconnectCallback;
+        }        
     }
 
     private void Start()
     {
-        gameInput.OnInteractAction += GameInteractOnInteractAction;
-        gameInput.OnInteractAlternateAction += GameInputOnOnInteractAlternateAction;
+        GameInput.Instance.OnInteractAction += GameInteractOnInteractAction;
+        GameInput.Instance.OnInteractAlternateAction += GameInputOnOnInteractAlternateAction;
     }
 
 
@@ -74,13 +89,17 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     
     void Update()
     {
-        HandleMovement();
-        HandleInteractions();
+        if(IsOwner) //local player only
+        {
+            HandleMovement();
+            HandleInteractions();
+        }
+
     }
 
     private void HandleInteractions()
     {
-        Vector2 inputVector = gameInput.GetMovementVectorNormalized();
+        Vector2 inputVector = GameInput.Instance.GetMovementVectorNormalized();
         Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
         if (moveDir != Vector3.zero)
         {
@@ -110,29 +129,30 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 
     void HandleMovement()
     {
-        Vector2 inputVector = gameInput.GetMovementVectorNormalized();
+        Vector2 inputVector = GameInput.Instance.GetMovementVectorNormalized();
         Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
 
         float moveDistance = moveSpeed * Time.deltaTime;
         float playerRadius = 0.7f;
-        float playerHeight = 2f;
-        bool canMove = !Physics.CapsuleCast(
+        bool canMove = !Physics.BoxCast(
             transform.position, 
-            transform.position + Vector3.up * playerHeight, 
-            playerRadius, 
+            Vector3.one * playerRadius, 
             moveDir, 
-            moveDistance);
+            Quaternion.identity, 
+            moveDistance,
+            collisionsLayerMask);
 
         // allow a player to slide against a wall by moving diagonally. Split x and z inputs.
         if (!canMove)
         {
             Vector3 moveDirX = new Vector3(moveDir.x, 0, 0).normalized; 
-            canMove = moveDir.x != 0 && !Physics.CapsuleCast(
-                transform.position, 
-                transform.position + Vector3.up * playerHeight, 
-                playerRadius, 
-                moveDirX, 
-                moveDistance);
+            canMove = (moveDir.x < -0.5f || moveDir.x > 0.5f) && !Physics.BoxCast(
+                transform.position,
+                Vector3.one * playerRadius,
+                moveDirX,
+                Quaternion.identity,
+                moveDistance,
+                collisionsLayerMask);
 
             if (canMove)
             {
@@ -142,12 +162,13 @@ public class Player : MonoBehaviour, IKitchenObjectParent
             else
             {
                 Vector3 moveDirZ = new Vector3(0, 0, moveDir.z).normalized;
-                canMove = moveDir.z != 0 && !Physics.CapsuleCast(
-                    transform.position, 
-                    transform.position + Vector3.up * playerHeight, 
-                    playerRadius, 
-                    moveDirZ, 
-                    moveDistance);
+                canMove = (moveDir.z < -0.5f || moveDir.z > 0.5f) && !Physics.BoxCast(
+                    transform.position,
+                    Vector3.one * playerRadius,
+                    moveDirZ,
+                    Quaternion.identity,
+                    moveDistance,
+                    collisionsLayerMask);
 
                 if (canMove)
                 {
@@ -186,6 +207,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         if (kitchenObject is not null)
         {
             OnPickedUpSomething?.Invoke(this, EventArgs.Empty);
+            OnAnyPickedSomething?.Invoke(this, EventArgs.Empty);
         }
     }
     public bool HasKitchenObject() => kitchenObject != null;
@@ -196,4 +218,16 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     {
         kitchenObject = null;
     }
+
+    public NetworkObject GetNetworkObject() => NetworkObject;
+
+    private void NetworkManagerOnClientDisconnectCallback(ulong clientId)
+    {
+        if(clientId == OwnerClientId && HasKitchenObject())
+        {
+            // Can only destroy kitchen object from the server
+            KitchenObject.DestroyKitchenObject(GetKitchenObject());
+        }
+    }
+
 }

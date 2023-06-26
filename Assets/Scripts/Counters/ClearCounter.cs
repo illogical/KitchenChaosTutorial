@@ -33,7 +33,7 @@ public class ClearCounter : BaseCounter
                     // player is holding a plate
                     if (playerPlateKitchenObject.TryAddIngredient(GetKitchenObject().GetKitchenObjectSO()))
                     {
-                        GetKitchenObject().DestroySelf();
+                        KitchenGameMultiplayer.Instance.DestroyKitchenObject(GetKitchenObject());
                     }
                 }
                 else
@@ -44,7 +44,7 @@ public class ClearCounter : BaseCounter
                         // plate is on the counter
                         if (plateKitchenObject.TryAddIngredient(player.GetKitchenObject().GetKitchenObjectSO()))
                         {
-                            player.GetKitchenObject().DestroySelf();
+                            KitchenGameMultiplayer.Instance.DestroyKitchenObject(player.GetKitchenObject());
                         }
                     }
                 }
