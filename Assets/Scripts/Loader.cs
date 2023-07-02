@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,7 +10,9 @@ public static class Loader
     {
         MainMenuScene,
         GameScene,
-        LoadingScene
+        LoadingScene,
+        LobbyScene,
+        CharacterSelectScene
     }
 
     private static Scene targetScene;
@@ -24,5 +27,10 @@ public static class Loader
     {
         // runs on first update when called from LoaderCallback.cs
         SceneManager.LoadScene(targetScene.ToString());
+    }
+
+    public static void LoadNetwork(Scene targetScene)
+    {
+        NetworkManager.Singleton.SceneManager.LoadScene(targetScene.ToString(), LoadSceneMode.Single);
     }
 }

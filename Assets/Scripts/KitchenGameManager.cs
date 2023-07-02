@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class KitchenGameManager : NetworkBehaviour
 {
@@ -34,6 +35,8 @@ public class KitchenGameManager : NetworkBehaviour
     private Dictionary<ulong, bool> playerPausedDictionary;
 
     [SerializeField] private float gamePlayingTimerMax = 90f;
+    [SerializeField] private Transform playerPrefab;
+
 
     private void Awake()
     {
@@ -57,6 +60,16 @@ public class KitchenGameManager : NetworkBehaviour
         {
             // handle when a player pauses the game then disconnects
             NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManagerOnClientDisconnectCallback;
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += SceneManagerOnOnLoadEventCompleted;
+        }
+    }
+
+    private void SceneManagerOnOnLoadEventCompleted(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
+    {
+        foreach(ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
+        {
+            Transform playerTransform = Instantiate(playerPrefab);
+            playerTransform.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
         }
     }
 
@@ -129,7 +142,7 @@ public class KitchenGameManager : NetworkBehaviour
             }
         }
 
-        if(allPlayersReady)
+        if (allPlayersReady)
         {
             state.Value = State.CountdownToStart;
         }

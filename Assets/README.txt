@@ -1,6 +1,9 @@
-6/26/23
+7/2/23
 Multiplayer
-https://youtu.be/7glCsF9fv3s?t=12760
+https://youtu.be/7glCsF9fv3s?t=14220
+
+Remember to start from the MainMenu scene now.
+
 
 Important to note - sequential in single player vs. via RPCs in multiplayer
 https://youtu.be/7glCsF9fv3s?t=7418

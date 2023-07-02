@@ -22,7 +22,7 @@ public class MainMenuUI : MonoBehaviour
 
     private void OnStartClicked()
     {
-        Loader.Load(Loader.Scene.GameScene);
+        Loader.Load(Loader.Scene.LobbyScene);
     }
     
     private void OnQuitButtonClicked()
