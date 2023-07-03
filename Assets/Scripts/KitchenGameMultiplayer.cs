@@ -63,6 +63,7 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     {
         NetworkManager.Singleton.ConnectionApprovalCallback += NetworkManagerConnectionApprovalCallback;
         NetworkManager.Singleton.OnClientConnectedCallback += NetworkManager_OnClientConnectedCallback;
+        NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_Server_OnClientDisconnectCallback;
         NetworkManager.Singleton.StartHost();
     }
 
@@ -86,6 +87,20 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     private void NetworkManager_OnClientDisconnectCallback(ulong obj)
     {
         OnFailedToJoinGame?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void NetworkManager_Server_OnClientDisconnectCallback(ulong clientId)
+    {
+        for (int i = 0; i < playerDataNetworkList.Count;i++)
+        {
+            PlayerData playerData = playerDataNetworkList[i];
+            if(playerData.ClientID == clientId)
+            {
+                // disconnected
+                playerDataNetworkList.RemoveAt(i);
+                return;
+            }
+        }
     }
 
     private void PlayerDataNetworkList_OnListChanged(NetworkListEvent<PlayerData> changeEvent)
@@ -210,6 +225,11 @@ public class KitchenGameMultiplayer : NetworkBehaviour
         return -1;
     }
 
+    public void KickPlayer(ulong clientId)
+    {
+        NetworkManager.Singleton.DisconnectClient(clientId);
+        NetworkManager_OnClientDisconnectCallback(clientId); // this won't fire automatically when forcing a client to disconnect
+    }
 
     public int GetKitchenObjectSOIndex(KitchenObjectSO kitchenObjectSO) => kitchenObjectListSO.KitchenObjectSOList.IndexOf(kitchenObjectSO);
 
@@ -223,6 +243,4 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     public PlayerData GetPlayerData(int playerIndex) => playerDataNetworkList[playerIndex];
 
     public Color GetPlayerColor(int colorId) => playerColorList[colorId];
-
-
 }
