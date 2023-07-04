@@ -32,6 +32,7 @@ public class CharacterSelectUI : MonoBehaviour
 
     private void OnMainMenuButtonClicked()
     {
+        KitchenGameLobby.Instance.LeaveLobby();
         NetworkManager.Singleton.Shutdown();
         Loader.Load(Loader.Scene.MainMenuScene);
     }
