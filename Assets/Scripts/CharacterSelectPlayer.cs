@@ -15,6 +15,7 @@ public class CharacterSelectPlayer : MonoBehaviour
 
     [SerializeField] private PlayerVisual playerVisual;
     [SerializeField] private Button kickButton;
+    [SerializeField] private TextMeshPro playerNameText;
 
 
     private void Awake()
@@ -51,6 +52,8 @@ public class CharacterSelectPlayer : MonoBehaviour
 
             readyGameObject.SetActive(
                 CharacterSelectReady.Instance.IsPlayerReady(playerData.ClientID));
+
+            playerNameText.text = playerData.PlayerName.ToString();
 
             playerVisual.SetPlayerColor(KitchenGameMultiplayer.Instance.GetPlayerColor(playerData.ColorId));
         }
