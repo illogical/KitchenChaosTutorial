@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.Services.Authentication;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -11,6 +12,7 @@ public class KitchenGameMultiplayer : NetworkBehaviour
 
     public const int MAX_PLAYERS = 4;
     private const string PLAYER_PREFS_PLAYER_NAME = "PlayerNameMultiplayer";
+    private const string PLAYER_PREFS_PLAYER_ID = "PlayerIdMultiplayer";
 
     public event EventHandler OnTryingToJoinGame;
     public event EventHandler OnFailedToJoinGame;
@@ -83,6 +85,7 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     private void Singleton_Server_OnClientConnectedCallback(ulong clientId)
     {
         SetPlayerNameServerRpc(GetPlayerName());
+        SetPlayerIdServerRpc(AuthenticationService.Instance.PlayerId);
     }
 
     private void NetworkManager_OnClientConnectedCallback(ulong clientId)
@@ -93,6 +96,7 @@ public class KitchenGameMultiplayer : NetworkBehaviour
         });
 
         SetPlayerNameServerRpc(GetPlayerName());
+        SetPlayerIdServerRpc(AuthenticationService.Instance.PlayerId);
     }
 
     private void NetworkManager_OnClientDisconnectCallback(ulong obj)
@@ -145,6 +149,15 @@ public class KitchenGameMultiplayer : NetworkBehaviour
         int playerDataIndex = GetPlayerDataIndexFromClientId(serverRpcParams.Receive.SenderClientId);
         PlayerData playerData = playerDataNetworkList[playerDataIndex];
         playerData.PlayerName = playerName;
+        playerDataNetworkList[playerDataIndex] = playerData; // upload new changes
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SetPlayerIdServerRpc(string playerId, ServerRpcParams serverRpcParams = default)
+    {
+        int playerDataIndex = GetPlayerDataIndexFromClientId(serverRpcParams.Receive.SenderClientId);
+        PlayerData playerData = playerDataNetworkList[playerDataIndex];
+        playerData.PlayerId = playerId;
         playerDataNetworkList[playerDataIndex] = playerData; // upload new changes
     }
 
@@ -252,6 +265,13 @@ public class KitchenGameMultiplayer : NetworkBehaviour
         NetworkManager_OnClientDisconnectCallback(clientId); // this won't fire automatically when forcing a client to disconnect
     }
 
+    public void SetPlayerName(string playerName)
+    {
+        this.playerName = playerName;
+
+        PlayerPrefs.SetString(PLAYER_PREFS_PLAYER_NAME, playerName);
+    }
+
     public int GetKitchenObjectSOIndex(KitchenObjectSO kitchenObjectSO) => kitchenObjectListSO.KitchenObjectSOList.IndexOf(kitchenObjectSO);
 
     public KitchenObjectSO GetKitchenObjectSOFromIndex(int index) => kitchenObjectListSO.KitchenObjectSOList[index];
@@ -267,10 +287,5 @@ public class KitchenGameMultiplayer : NetworkBehaviour
 
     public string GetPlayerName() => playerName;
 
-    public void SetPlayerName(string playerName)
-    {
-        this.playerName = playerName;
 
-        PlayerPrefs.SetString(PLAYER_PREFS_PLAYER_NAME, playerName);
-    }
 }

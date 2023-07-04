@@ -23,6 +23,7 @@ public class CharacterSelectPlayer : MonoBehaviour
         kickButton.onClick.AddListener(() =>
         {
             PlayerData playerData = KitchenGameMultiplayer.Instance.GetPlayerData(playerIndex);
+            KitchenGameLobby.Instance.KickPlayer(playerData.PlayerId.ToString());
             KitchenGameMultiplayer.Instance.KickPlayer(playerData.ClientID);
         });
     }
